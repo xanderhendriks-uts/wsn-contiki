@@ -1,0 +1,20 @@
+on: [push]
+
+jobs:
+  hello_world_job:
+    runs-on: ubuntu-latest
+    name: Building cc26xx-web-demo
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Build Contiki example project
+      uses: xanderhendriks-uts/action-build-contiki@master
+      with:
+        which-project: 'cc26xx-web-demo'
+    - name: Archive the artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: binary
+        path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
