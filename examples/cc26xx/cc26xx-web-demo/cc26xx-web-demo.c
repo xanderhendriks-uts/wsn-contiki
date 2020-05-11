@@ -1020,6 +1020,7 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       get_bmp_reading();
     } else if(ev == sensors_event && data == &level_sensor) {
       get_gpio_input_reading();
+      process_post(PROCESS_BROADCAST, cc26xx_web_demo_publish_event, NULL);
     } else if(ev == sensors_event && data == &opt_3001_sensor) {
       get_light_reading();
     } else if(ev == sensors_event && data == &hdc_1000_sensor) {
