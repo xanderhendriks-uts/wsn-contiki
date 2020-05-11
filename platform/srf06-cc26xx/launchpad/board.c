@@ -40,6 +40,7 @@
 #include "lib/sensors.h"
 #include "lpm.h"
 #include "ti-lib.h"
+#include "relay.h"
 #include "board-peripherals.h"
 #include "rf-core/rf-switch.h"
 
@@ -92,6 +93,8 @@ board_init()
   /* Apply settings and wait for them to take effect */
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+  relay_init();
 
   /* Make sure the external flash is in the lower power mode */
   ext_flash_init();

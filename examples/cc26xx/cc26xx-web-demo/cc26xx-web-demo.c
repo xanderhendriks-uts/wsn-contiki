@@ -46,12 +46,15 @@
 #include "sys/process.h"
 #include "net/ipv6/sicslowpan.h"
 #include "button-sensor.h"
-#include "level-sensor.h"
 #include "batmon-sensor.h"
 #include "httpd-simple.h"
 #include "cc26xx-web-demo.h"
 #include "mqtt-client.h"
 #include "coap-server.h"
+
+#if BOARD_SENSORTAG
+    #include "level-sensor.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
