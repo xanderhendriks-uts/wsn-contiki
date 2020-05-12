@@ -1,6 +1,6 @@
 eclipse.preferences.version=1
 environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/delimiter=;
-environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/operation=append
+environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/operation=replace
 environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/BOARD/value=sensortag/cc2650
 environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/CFLAGS/delimiter=;
 environment/project/com.ti.ccstudio.buildDefinitions.TMS470.Debug.61245943/CFLAGS/operation=replace

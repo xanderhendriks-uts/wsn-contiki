@@ -51,6 +51,10 @@
 #include "mqtt-client.h"
 #include "httpd-simple.h"
 
+#ifdef BOARD_LAUNCHPAD
+    #include "relay.h"
+#endif
+
 #include <string.h>
 #include <strings.h>
 /*---------------------------------------------------------------------------*/
@@ -268,6 +272,8 @@ cmd_type_post_handler(char *key, int key_len, char *val, int val_len)
     memset(conf->cmd_type, 0, MQTT_CLIENT_CONFIG_CMD_TYPE_LEN);
     memcpy(conf->cmd_type, val, val_len);
 
+    DBG("cmd_type_post_handler: %s", val);
+
     rv = HTTPD_SIMPLE_POST_HANDLER_OK;
   }
 
@@ -409,39 +415,57 @@ static void
 pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
             uint16_t chunk_len)
 {
-  DBG("Pub Handler: topic='%s' (len=%u), chunk_len=%u\n", topic, topic_len,
-      chunk_len);
+  uint16_t topic_index;
 
-  /* If we don't like the length, ignore */
-  if(topic_len != 23 || chunk_len != 1) {
+  topic_index = (uint16_t) (strchr(sub_topic, '+') - sub_topic);
+
+  DBG("Pub Handler: topic='%s' (len=%u), sub_str='%s', chunk_len=%u\n", topic, topic_len,
+      &topic[topic_index], chunk_len);
+
+  if ((strncmp(topic, sub_topic, topic_index - 1) == 0) && (chunk_len == 1))
+  {
+      /* If the format != json, ignore */
+      if(strncmp(&topic[topic_len - 4], "json", 4) != 0) {
+        printf("Incorrect format\n");
+      }
+
+      if(strncmp(&topic[topic_index], "leds", 4) == 0) {
+        if(chunk[0] == '1') {
+          leds_on(LEDS_RED);
+        } else if(chunk[0] == '0') {
+          leds_off(LEDS_RED);
+        }
+        return;
+      }
+
+#if BOARD_SENSORTAG
+      if(strncmp(&topic[topic_index], "buzz", 4) == 0) {
+        if(chunk[0] == '1') {
+          buzzer_start(1000);
+        } else if(chunk[0] == '0') {
+          buzzer_stop();
+        }
+        return;
+      }
+#endif
+
+#if BOARD_LAUNCHPAD
+      if(strncmp(&topic[topic_index], "pump", 4) == 0) {
+        if(chunk[0] == '1') {
+          relay_on(RELAY_ID_PUMP);
+        } else if(chunk[0] == '0') {
+          relay_off(RELAY_ID_PUMP);
+        }
+        return;
+      }
+#endif
+
+  }
+  else {
+    /* If we don't like the packet or length, ignore */
     printf("Incorrect topic or chunk len. Ignored\n");
     return;
   }
-
-  /* If the format != json, ignore */
-  if(strncmp(&topic[topic_len - 4], "json", 4) != 0) {
-    printf("Incorrect format\n");
-  }
-
-  if(strncmp(&topic[10], "leds", 4) == 0) {
-    if(chunk[0] == '1') {
-      leds_on(LEDS_RED);
-    } else if(chunk[0] == '0') {
-      leds_off(LEDS_RED);
-    }
-    return;
-  }
-
-#if BOARD_SENSORTAG
-  if(strncmp(&topic[10], "buzz", 4) == 0) {
-    if(chunk[0] == '1') {
-      buzzer_start(1000);
-    } else if(chunk[0] == '0') {
-      buzzer_stop();
-    }
-    return;
-  }
-#endif
 }
 /*---------------------------------------------------------------------------*/
 static void
@@ -515,7 +539,7 @@ construct_pub_topic(void)
 static int
 construct_sub_topic(void)
 {
-  int len = snprintf(sub_topic, BUFFER_SIZE, "iot-2/cmd/%s/fmt/json",
+  int len = snprintf(sub_topic, BUFFER_SIZE, "iot-2/cmd/%s/+/fmt/json",
                      conf->cmd_type);
 
   /* len < 0: Error. Len >= BUFFER_SIZE: Buffer too small */
@@ -773,10 +797,14 @@ state_machine(void)
     break;
   case MQTT_CLIENT_STATE_CONNECTED:
     /* Don't subscribe unless we are a registered device */
+    /*
+     * Always subscribe to our Mosquitto MQTT broker
+     *
     if(strncasecmp(conf->org_id, QUICKSTART, strlen(conf->org_id)) == 0) {
       DBG("Using 'quickstart': Skipping subscribe\n");
       state = MQTT_CLIENT_STATE_PUBLISHING;
     }
+    */
     /* Continue */
   case MQTT_CLIENT_STATE_PUBLISHING:
     /* If the timer expired, the connection is stable. */
@@ -920,6 +948,12 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
       init_config();
       etimer_set(&publish_periodic_timer, NEW_CONFIG_WAIT_INTERVAL);
     }
+
+    if(ev == cc26xx_web_demo_config_loaded_event) {
+      update_config();
+      DBG("Config updated\n");
+    }
+
   }
 
   PROCESS_END();

@@ -46,12 +46,15 @@
 #include "sys/process.h"
 #include "net/ipv6/sicslowpan.h"
 #include "button-sensor.h"
-#include "level-sensor.h"
 #include "batmon-sensor.h"
 #include "httpd-simple.h"
 #include "cc26xx-web-demo.h"
 #include "mqtt-client.h"
 #include "coap-server.h"
+
+#if BOARD_SENSORTAG
+    #include "level-sensor.h"
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1020,6 +1023,7 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       get_bmp_reading();
     } else if(ev == sensors_event && data == &level_sensor) {
       get_gpio_input_reading();
+      process_post(PROCESS_BROADCAST, cc26xx_web_demo_publish_event, NULL);
     } else if(ev == sensors_event && data == &opt_3001_sensor) {
       get_light_reading();
     } else if(ev == sensors_event && data == &hdc_1000_sensor) {
