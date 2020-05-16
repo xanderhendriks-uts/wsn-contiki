@@ -458,6 +458,43 @@ pub_handler(const char *topic, uint16_t topic_len, const uint8_t *chunk,
         }
         return;
       }
+
+      if(strncmp(&topic[topic_index], "light", 4) == 0) {
+        if(chunk[0] == '1') {
+          relay_on(RELAY_ID_LIGHT);
+        } else if(chunk[0] == '0') {
+          relay_off(RELAY_ID_LIGHT);
+        }
+        return;
+      }
+
+      if(strncmp(&topic[topic_index], "fan", 3) == 0) {
+        if(chunk[0] == '1') {
+          relay_on(RELAY_ID_FAN);
+        } else if(chunk[0] == '0') {
+          relay_off(RELAY_ID_FAN);
+        }
+        return;
+      }
+
+      if(strncmp(&topic[topic_index], "cool", 4) == 0) {
+        if(chunk[0] == '1') {
+          relay_on(RELAY_ID_COOL);
+        } else if(chunk[0] == '0') {
+          relay_off(RELAY_ID_COOL);
+        }
+        return;
+      }
+
+      if(strncmp(&topic[topic_index], "heat", 4) == 0) {
+        if(chunk[0] == '1') {
+          relay_on(RELAY_ID_HEAT);
+        } else if(chunk[0] == '0') {
+          relay_off(RELAY_ID_HEAT);
+        }
+        return;
+      }
+
 #endif
 
   }
