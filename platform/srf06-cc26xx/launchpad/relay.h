@@ -16,6 +16,11 @@
 #include <stdint.h>
 /*---------------------------------------------------------------------------*/
 #define RELAY_ID_PUMP 0
+#define RELAY_ID_LIGHT 0
+#define RELAY_ID_FAN 0
+#define RELAY_ID_COOL 1
+#define RELAY_ID_HEAT 2
+
 
 /**
  * \brief Initialise the relay
