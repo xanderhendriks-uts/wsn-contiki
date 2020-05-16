@@ -16,6 +16,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROGRAM.CC2650F128.ccxml.Texas Instruments XDS110 USB Debug Probe/Cortex_M3_0" value="D:\GIT\wsn-contiki\examples\cc26xx\cc26xx-web-demo\cc26xx-web-demo.elf"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_PROJECT.CC2650F128.ccxml.Texas Instruments XDS110 USB Debug Probe/Cortex_M3_0" value="cc26xx-web-demo [launchpad]"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:cc26xx-web-demo [launchpad]}"/>
+<stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.CC2650F128.ccxml.Texas Instruments XDS110 USB Debug Probe/Cortex_M3_0" value="D:\GIT\wsn-contiki\examples\cc26xx\cc26xx-web-demo\cc26xx-web-demo.elf"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/cc26xx-web-demo [launchpad]"/>
 </listAttribute>
