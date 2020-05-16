@@ -10,7 +10,7 @@ jobs:
       with:
         submodules: 'recursive'
     - name: Build Contiki example project for sensortag
-      uses: xanderhendriks-uts/action-build-contiki@master
+      uses: xanderhendriks-uts/action-build-contiki@v2
       with:
         which-project: 'cc26xx-web-demo'
         which-target: 'sensortag'
@@ -20,7 +20,7 @@ jobs:
         name: cc26xx-web-demo-sensortag
         path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
     - name: Build Contiki example project for launchpad
-      uses: xanderhendriks-uts/action-build-contiki@master
+      uses: xanderhendriks-uts/action-build-contiki@v2
       with:
         which-project: 'cc26xx-web-demo'
         which-target: 'launchpad'
@@ -30,7 +30,7 @@ jobs:
         name: cc26xx-web-demo-launchpad
         path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
     - name: Build Contiki radio for launchpad
-      uses: xanderhendriks-uts/action-build-contiki@master
+      uses: xanderhendriks-uts/action-build-contiki@v2
       with:
         which-project: 'slip-radio'
         which-target: 'launchpad'
