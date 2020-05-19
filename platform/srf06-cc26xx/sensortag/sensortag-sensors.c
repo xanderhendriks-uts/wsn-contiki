@@ -41,7 +41,7 @@
 #include "sensortag/bmp-280-sensor.h"
 #include "sensortag/level-sensor.h"
 #include "sensortag/tmp-007-sensor.h"
-#include "sensortag/opt-3001-sensor.h"
+#include "common/opt-3001-sensor.h"
 #include "sensortag/hdc-1000-sensor.h"
 #include "sensortag/mpu-9250-sensor.h"
 #include "sensortag/reed-relay.h"

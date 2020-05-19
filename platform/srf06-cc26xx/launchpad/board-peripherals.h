@@ -46,6 +46,7 @@
 #ifndef BOARD_PERIPHERALS_H_
 #define BOARD_PERIPHERALS_H_
 /*---------------------------------------------------------------------------*/
+#include "opt-3001-sensor.h"
 #include "ext-flash.h"
 /*---------------------------------------------------------------------------*/
 #endif /* BOARD_PERIPHERALS_H_ */
