@@ -1,7 +1,7 @@
 on: [push]
 
 jobs:
-  hello_world_job:
+  cc26xx-binaries:
     runs-on: ubuntu-latest
     name: Building cc26xx-web-demo
     steps:
@@ -19,6 +19,10 @@ jobs:
       with:
         name: cc26xx-web-demo-sensortag
         path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - name: Build Contiki example project for launchpad
       uses: xanderhendriks-uts/action-build-contiki@v2
       with:
@@ -29,6 +33,10 @@ jobs:
       with:
         name: cc26xx-web-demo-launchpad
         path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - name: Build Contiki radio for launchpad
       uses: xanderhendriks-uts/action-build-contiki@v2
       with:
