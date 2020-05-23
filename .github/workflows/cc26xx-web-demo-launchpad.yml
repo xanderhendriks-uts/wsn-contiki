@@ -1,0 +1,21 @@
+on: [push]
+
+jobs:
+  cc26xx-web-demo-launchpad:
+    runs-on: ubuntu-latest
+    name: Building cc26xx-web-demo-launchpad
+    steps:
+    - name: Checkout the repository
+      uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
+    - name: Build Contiki example project for launchpad
+      uses: xanderhendriks-uts/action-build-contiki@v2
+      with:
+        which-project: 'cc26xx-web-demo'
+        which-target: 'launchpad'
+    - name: Archive the artifacts
+      uses: actions/upload-artifact@v1
+      with:
+        name: cc26xx-web-demo-launchpad
+        path: examples/cc26xx/cc26xx-web-demo/cc26xx-web-demo.bin
