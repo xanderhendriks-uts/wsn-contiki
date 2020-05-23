@@ -146,8 +146,13 @@
  * Those values are not meant to be modified by the user
  * @{
  */
-#define BOARD_IOID_SCL            IOID_4
-#define BOARD_IOID_SDA            IOID_5
+#define BOARD_IOID_SCL            IOID_22
+#define BOARD_IOID_SDA            IOID_24
+ /* This interface is not used the I2C code should be updated to disable
+  * it if it has not been defined 
+  */
+#define BOARD_IOID_SCL_HP         IOID_9
+#define BOARD_IOID_SDA_HP         IOID_8
 /** @} */
 /*---------------------------------------------------------------------------*/
 /**

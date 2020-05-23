@@ -42,6 +42,7 @@
 #include "ti-lib.h"
 #include "relay.h"
 #include "board-peripherals.h"
+#include "board-i2c.h"
 #include "rf-core/rf-switch.h"
 
 #include <stdint.h>
@@ -57,13 +58,24 @@ wakeup_handler(void)
         != PRCM_DOMAIN_POWER_ON);
 }
 /*---------------------------------------------------------------------------*/
+static void
+shutdown_handler(uint8_t mode)
+{
+  if(mode == LPM_MODE_SHUTDOWN) {
+    SENSORS_DEACTIVATE(opt_3001_sensor);
+  }
+
+  /* In all cases, stop the I2C */
+  board_i2c_shutdown();
+}
+/*---------------------------------------------------------------------------*/
 /*
  * Declare a data structure to register with LPM.
  * We don't care about what power mode we'll drop to, we don't care about
  * getting notified before deep sleep. All we need is to be notified when we
  * wake up so we can turn power domains back on
  */
-LPM_MODULE(launchpad_module, NULL, NULL, wakeup_handler, LPM_DOMAIN_NONE);
+LPM_MODULE(launchpad_module, NULL, shutdown_handler, wakeup_handler, LPM_DOMAIN_NONE);
 /*---------------------------------------------------------------------------*/
 static void
 configure_unused_pins(void)
@@ -93,6 +105,9 @@ board_init()
   /* Apply settings and wait for them to take effect */
   ti_lib_prcm_load_set();
   while(!ti_lib_prcm_load_get());
+
+  /* I2C controller */
+  board_i2c_wakeup();
 
   relay_init();
 

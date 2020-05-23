@@ -72,10 +72,10 @@ PROCESS(cc26xx_web_demo_process, "CC26XX Web Demo");
 #define SENSOR_READING_PERIOD (CLOCK_SECOND * 20)
 #define SENSOR_READING_RANDOM (CLOCK_SECOND << 4)
 
-struct ctimer batmon_timer;
+struct ctimer batmon_timer, opt_timer;
 
 #if BOARD_SENSORTAG
-struct ctimer bmp_timer, level_timer, hdc_timer, tmp_timer, opt_timer, mpu_timer;
+struct ctimer bmp_timer, level_timer, hdc_timer, tmp_timer, mpu_timer;
 #endif
 /*---------------------------------------------------------------------------*/
 /* Provide visible feedback via LEDS while searching for a network */
@@ -123,6 +123,9 @@ DEMO_SENSOR(batmon_temp, CC26XX_WEB_DEMO_SENSOR_BATMON_TEMP,
 DEMO_SENSOR(batmon_volt, CC26XX_WEB_DEMO_SENSOR_BATMON_VOLT,
             "Battery Volt", "battery-volt", "batmon_volt",
             CC26XX_WEB_DEMO_UNIT_VOLT);
+DEMO_SENSOR(opt, CC26XX_WEB_DEMO_SENSOR_OPT_LIGHT,
+            "Light", "light", "light",
+            CC26XX_WEB_DEMO_UNIT_LIGHT);
 
 #if CC26XX_WEB_DEMO_ADC_DEMO
 DEMO_SENSOR(adc_dio23, CC26XX_WEB_DEMO_SENSOR_ADC_DIO23,
@@ -153,9 +156,6 @@ DEMO_SENSOR(tmp_amb, CC26XX_WEB_DEMO_SENSOR_TMP_AMBIENT,
 DEMO_SENSOR(tmp_obj, CC26XX_WEB_DEMO_SENSOR_TMP_OBJECT,
             "Object Temp", "object-temp", "tmp_obj",
             CC26XX_WEB_DEMO_UNIT_TEMP);
-DEMO_SENSOR(opt, CC26XX_WEB_DEMO_SENSOR_OPT_LIGHT,
-            "Light", "light", "light",
-            CC26XX_WEB_DEMO_UNIT_LIGHT);
 
 /* MPU Readings */
 DEMO_SENSOR(mpu_acc_x, CC26XX_WEB_DEMO_SENSOR_MPU_ACC_X,
@@ -179,9 +179,10 @@ DEMO_SENSOR(mpu_gyro_z, CC26XX_WEB_DEMO_SENSOR_MPU_GYRO_Z,
             CC26XX_WEB_DEMO_UNIT_GYRO);
 #endif
 /*---------------------------------------------------------------------------*/
+static void init_light_reading(void *data);
+
 #if BOARD_SENSORTAG
 static void init_bmp_reading(void *data);
-static void init_light_reading(void *data);
 static void init_hdc_reading(void *data);
 static void init_tmp_reading(void *data);
 static void init_mpu_reading(void *data);
@@ -457,6 +458,17 @@ ping_parent(void)
 #endif
 /*---------------------------------------------------------------------------*/
 static void
+compare_and_update(cc26xx_web_demo_sensor_reading_t *reading)
+{
+  if(reading->last == reading->raw) {
+    reading->changed = 0;
+  } else {
+    reading->last = reading->raw;
+    reading->changed = 1;
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
 get_batmon_reading(void *data)
 {
   int value;
@@ -489,6 +501,41 @@ get_batmon_reading(void *data)
   ctimer_set(&batmon_timer, next, get_batmon_reading, NULL);
 }
 /*---------------------------------------------------------------------------*/
+static void
+init_light_reading(void *data)
+{
+  if(opt_reading.publish) {
+    SENSORS_ACTIVATE(opt_3001_sensor);
+  } else {
+    ctimer_set(&opt_timer, CLOCK_SECOND, init_light_reading, NULL);
+  }
+}
+/*---------------------------------------------------------------------------*/
+static void
+get_light_reading()
+{
+  int value;
+  char *buf;
+  clock_time_t next = SENSOR_READING_PERIOD +
+    (random_rand() % SENSOR_READING_RANDOM);
+
+  value = opt_3001_sensor.value(0);
+
+  if(value != CC26XX_SENSOR_READING_ERROR) {
+    opt_reading.raw = value;
+
+    compare_and_update(&opt_reading);
+
+    buf = opt_reading.converted;
+    memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
+    snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
+             value % 100);
+  }
+
+  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
+  ctimer_set(&opt_timer, next, init_light_reading, NULL);
+}
+/*---------------------------------------------------------------------------*/
 #if CC26XX_WEB_DEMO_ADC_DEMO
 static void
 get_adc_reading(void *data)
@@ -506,17 +553,6 @@ get_adc_reading(void *data)
 #endif
 /*---------------------------------------------------------------------------*/
 #if BOARD_SENSORTAG
-/*---------------------------------------------------------------------------*/
-static void
-compare_and_update(cc26xx_web_demo_sensor_reading_t *reading)
-{
-  if(reading->last == reading->raw) {
-    reading->changed = 0;
-  } else {
-    reading->last = reading->raw;
-    reading->changed = 1;
-  }
-}
 /*---------------------------------------------------------------------------*/
 static void
 print_mpu_reading(int reading, char *buf)
@@ -679,31 +715,6 @@ get_hdc_reading()
 }
 /*---------------------------------------------------------------------------*/
 static void
-get_light_reading()
-{
-  int value;
-  char *buf;
-  clock_time_t next = SENSOR_READING_PERIOD +
-    (random_rand() % SENSOR_READING_RANDOM);
-
-  value = opt_3001_sensor.value(0);
-
-  if(value != CC26XX_SENSOR_READING_ERROR) {
-    opt_reading.raw = value;
-
-    compare_and_update(&opt_reading);
-
-    buf = opt_reading.converted;
-    memset(buf, 0, CC26XX_WEB_DEMO_CONVERTED_LEN);
-    snprintf(buf, CC26XX_WEB_DEMO_CONVERTED_LEN, "%d.%02d", value / 100,
-             value % 100);
-  }
-
-  /* The OPT will turn itself off, so we don't need to call its DEACTIVATE */
-  ctimer_set(&opt_timer, next, init_light_reading, NULL);
-}
-/*---------------------------------------------------------------------------*/
-static void
 get_mpu_reading()
 {
   clock_time_t next = SENSOR_READING_PERIOD +
@@ -825,16 +836,6 @@ init_hdc_reading(void *data)
 }
 /*---------------------------------------------------------------------------*/
 static void
-init_light_reading(void *data)
-{
-  if(opt_reading.publish) {
-    SENSORS_ACTIVATE(opt_3001_sensor);
-  } else {
-    ctimer_set(&opt_timer, CLOCK_SECOND, init_light_reading, NULL);
-  }
-}
-/*---------------------------------------------------------------------------*/
-static void
 init_mpu_reading(void *data)
 {
   int readings_bitmap = 0;
@@ -865,10 +866,10 @@ init_sensor_readings(void)
    * trigger periodic value updates
    */
   get_batmon_reading(NULL);
+  init_light_reading(NULL);
 
 #if BOARD_SENSORTAG
   init_bmp_reading(NULL);
-  init_light_reading(NULL);
   init_hdc_reading(NULL);
   init_tmp_reading(NULL);
   init_mpu_reading(NULL);
@@ -883,6 +884,7 @@ init_sensors(void)
 
   list_add(sensor_list, &batmon_temp_reading);
   list_add(sensor_list, &batmon_volt_reading);
+  list_add(sensor_list, &opt_reading);
 
 #if CC26XX_WEB_DEMO_ADC_DEMO
   list_add(sensor_list, &adc_dio23_reading);
@@ -898,8 +900,6 @@ init_sensors(void)
 
   list_add(sensor_list, &tmp_obj_reading);
   list_add(sensor_list, &tmp_amb_reading);
-
-  list_add(sensor_list, &opt_reading);
 
   list_add(sensor_list, &hdc_hum_reading);
   list_add(sensor_list, &hdc_temp_reading);
@@ -1018,14 +1018,14 @@ PROCESS_THREAD(cc26xx_web_demo_process, ev, data)
       }
     } else if(ev == httpd_simple_event_new_config) {
       save_config();
+    } else if(ev == sensors_event && data == &opt_3001_sensor) {
+      get_light_reading();
 #if BOARD_SENSORTAG
     } else if(ev == sensors_event && data == &bmp_280_sensor) {
       get_bmp_reading();
     } else if(ev == sensors_event && data == &level_sensor) {
       get_gpio_input_reading();
       process_post(PROCESS_BROADCAST, cc26xx_web_demo_publish_event, NULL);
-    } else if(ev == sensors_event && data == &opt_3001_sensor) {
-      get_light_reading();
     } else if(ev == sensors_event && data == &hdc_1000_sensor) {
       get_hdc_reading();
     } else if(ev == sensors_event && data == &tmp_007_sensor) {
